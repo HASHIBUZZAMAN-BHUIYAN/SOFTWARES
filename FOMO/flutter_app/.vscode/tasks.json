@@ -1,0 +1,31 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Flutter: Run Windows",
+      "type": "shell",
+      "command": "C:\\Users\\zen\\.puro\\bin\\puro.bat",
+      "args": ["flutter", "run", "-d", "windows"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Flutter: pub get",
+      "type": "shell",
+      "command": "C:\\Users\\zen\\.puro\\bin\\puro.bat",
+      "args": ["flutter", "pub", "get"],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

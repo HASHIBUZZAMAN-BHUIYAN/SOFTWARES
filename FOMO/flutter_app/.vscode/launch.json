@@ -1,0 +1,30 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "PrivMesh (Windows)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug",
+      "deviceId": "windows",
+      "program": "lib/main.dart",
+      "args": ["--dart-define=FLUTTER_WEB_USE_SKIA=false"]
+    },
+    {
+      "name": "PrivMesh (Android)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug",
+      "deviceId": "android",
+      "program": "lib/main.dart"
+    },
+    {
+      "name": "PrivMesh (Web - Edge)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug",
+      "deviceId": "edge",
+      "program": "lib/main.dart"
+    }
+  ]
+}

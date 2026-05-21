@@ -1,0 +1,11 @@
+{
+  "dart.flutterSdkPath": "C:\\Users\\zen\\.puro\\envs\\stable\\flutter",
+  "dart.debugExternalPackageLibraries": false,
+  "dart.debugSdkLibraries": false,
+  "editor.formatOnSave": true,
+  "editor.rulers": [100],
+  "[dart]": {
+    "editor.defaultFormatter": "Dart-Code.dart-code",
+    "editor.wordBasedSuggestions": "off"
+  }
+}
