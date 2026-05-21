@@ -1,0 +1,20 @@
+{
+  "name": "HWP Studio",
+  "short_name": "HWP",
+  "description": "한국어 문서 편집기",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1E1E2E",
+  "theme_color": "#1E1E2E",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"]
+}

@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1E1E2E">
+<title>HWP Studio</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+/* ══ RESET & VARS ═══════════════════════════════════ */
+:root {
+  --bg:       #1E1E2E;
+  --sidebar:  #181825;
+  --toolbar:  #242436;
+  --canvas:   #2A2A3E;
+  --paper:    #FAFAF8;
+  --accent:   #89B4FA;
+  --accent2:  #CBA6F7;
+  --ok:       #A6E3A1;
+  --warn:     #F9E2AF;
+  --danger:   #F38BA8;
+  --text:     #CDD6F4;
+  --dim:      #6C7086;
+  --border:   #313244;
+  --hover:    #313244;
+  --ink:      #1E1E2E;
+}
+/* ── Light theme ─────────────────────────────── */
+[data-theme="light"] {
+  --bg:       #F2F4F8;
+  --sidebar:  #E8EBF2;
+  --toolbar:  #FFFFFF;
+  --canvas:   #D8DCE8;
+  --paper:    #FFFFFF;
+  --accent:   #5563E0;
+  --accent2:  #9B51E0;
+  --ok:       #2D9E4B;
+  --warn:     #D97706;
+  --danger:   #DC2626;
+  --text:     #1E1E30;
+  --dim:      #6B7280;
+  --border:   #CDD2DF;
+  --hover:    #E4E8F2;
+  --ink:      #111827;
+}
+/* ── Default (classic office) theme ──────────── */
+[data-theme="default"] {
+  --bg:       #EDE9E2;
+  --sidebar:  #E3DED5;
+  --toolbar:  #F5F2EC;
+  --canvas:   #D3CFC6;
+  --paper:    #FDFCF9;
+  --accent:   #0063B1;
+  --accent2:  #6B00B3;
+  --ok:       #107C10;
+  --warn:     #C57F00;
+  --danger:   #C42B1C;
+  --text:     #201F1E;
+  --dim:      #7A7574;
+  --border:   #C5C0B8;
+  --hover:    #E8E4DC;
+  --ink:      #201F1E;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:'Malgun Gothic','맑은 고딕','Apple SD Gothic Neo','Noto Sans KR',
+              'AppleGothic',sans-serif;
+  background:var(--bg);color:var(--text);
+  display:flex;flex-direction:column;
+  -webkit-font-smoothing:antialiased;
+}
+/* ══ TOOLBAR ══════════════════════════════════════ */
+.bar{
+  display:flex;align-items:center;
+  background:var(--toolbar);padding:3px 6px;gap:1px;
+  flex-shrink:0;overflow-x:auto;scrollbar-width:none;
+  border-bottom:1px solid var(--border);
+}
+.bar::-webkit-scrollbar{display:none}
+button{
+  background:transparent;border:none;color:var(--text);
+  padding:5px 9px;border-radius:4px;cursor:pointer;
+  font-size:13px;white-space:nowrap;transition:background .12s,color .12s;
+  font-family:inherit;
+}
+button:hover{background:var(--hover);color:var(--accent)}
+button:active{transform:scale(.97)}
+button.on{background:var(--accent);color:#000}
+.sep{width:1px;background:var(--border);height:22px;flex-shrink:0;margin:0 3px}
+select{
+  background:var(--toolbar);border:1px solid var(--border);
+  color:var(--text);border-radius:4px;padding:3px 5px;
+  font-size:12px;font-family:inherit;cursor:pointer;
+}
+select:focus{outline:1px solid var(--accent)}
+/* ══ TAB BAR ══════════════════════════════════════ */
+#tabbar{
+  display:flex;align-items:center;
+  background:var(--bg);border-bottom:1px solid var(--border);
+  flex-shrink:0;overflow-x:auto;scrollbar-width:none;min-height:32px;
+}
+#tabbar::-webkit-scrollbar{display:none}
+.tab{
+  display:flex;align-items:center;gap:4px;
+  padding:5px 12px;cursor:pointer;font-size:12px;color:var(--dim);
+  border-right:1px solid var(--border);white-space:nowrap;flex-shrink:0;
+  transition:background .12s;
+}
+.tab.on{background:var(--hover);color:var(--accent)}
+.tab .x{color:var(--dim);font-size:15px;line-height:1;padding:0 2px}
+.tab .x:hover{color:var(--danger)}
+#tab-add{
+  padding:4px 12px;font-size:19px;color:var(--accent);
+  cursor:pointer;flex-shrink:0;opacity:.8;
+}
+#tab-add:hover{opacity:1}
+/* ══ MAIN LAYOUT ══════════════════════════════════ */
+#main{display:flex;flex:1;overflow:hidden;min-height:0}
+/* ══ SIDEBAR ══════════════════════════════════════ */
+#sb{
+  width:174px;background:var(--sidebar);flex-shrink:0;
+  overflow-y:auto;border-right:1px solid var(--border);
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
+}
+#sb.hide{display:none}
+.sb-h{
+  font-size:10px;font-weight:700;color:var(--dim);
+  text-transform:uppercase;padding:8px 12px 4px;letter-spacing:.8px;
+}
+#sb button{
+  display:block;width:100%;text-align:left;
+  padding:7px 12px;font-size:12px;border-radius:0;
+}
+#sb button:hover{background:var(--hover)}
+.sb-div{border:none;border-top:1px solid var(--border);margin:4px 12px}
+#sb-stats{padding:6px 12px;font-size:11px;color:var(--dim);line-height:1.9}
+#sb select{width:calc(100% - 24px);margin:4px 12px;display:block}
+/* ══ EDITOR AREA ══════════════════════════════════ */
+#area{
+  flex:1;background:var(--canvas);
+  overflow:auto;display:flex;justify-content:center;
+  padding:28px 16px 40px;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
+}
+#wrap{
+  box-shadow:0 4px 32px rgba(0,0,0,.5);
+  transform-origin:top center;will-change:transform;
+}
+#paper{
+  background:var(--paper);
+  width:794px;min-height:1123px;
+  padding:72px 80px;
+  position:relative;
+}
+#editor{
+  outline:none;min-height:920px;
+  color:var(--ink);
+  font-size:13pt;line-height:1.85;
+  word-break:break-word;
+  -webkit-user-select:text;user-select:text;
+  caret-color:var(--accent);
+}
+#editor:focus{outline:none}
+#editor table{border-collapse:collapse;width:100%;margin:8px 0}
+#editor td,#editor th{border:1px solid #bbb;padding:6px 10px;min-width:60px}
+#editor hr{border:none;border-top:2px solid #89B4FA;margin:10px 0}
+#editor h1{font-size:22pt;margin:8px 0}
+#editor h2{font-size:17pt;margin:6px 0}
+#editor h3{font-size:13pt;font-weight:700;margin:4px 0}
+/* ══ STATUS BAR ══════════════════════════════════ */
+#status{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--toolbar);padding:3px 12px;
+  font-size:11px;color:var(--dim);flex-shrink:0;
+  border-top:1px solid var(--border);
+}
+#status-right{display:flex;gap:14px}
+/* ══ DIALOG ════════════════════════════════════ */
+.ov{
+  position:fixed;inset:0;background:rgba(0,0,0,.65);
+  display:flex;align-items:center;justify-content:center;z-index:999;
+  backdrop-filter:blur(2px);
+}
+.dlg{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:10px;padding:24px;min-width:300px;max-width:92vw;
+  box-shadow:0 8px 40px rgba(0,0,0,.6);
+}
+.dlg h3{margin-bottom:14px;color:var(--text);font-size:14px}
+.dlg label{display:block;margin-bottom:5px;font-size:11px;color:var(--dim)}
+.dlg input,.dlg select{
+  width:100%;background:var(--toolbar);border:1px solid var(--border);
+  color:var(--text);border-radius:4px;padding:7px 10px;
+  font-size:13px;font-family:inherit;margin-bottom:10px;
+}
+.dlg input:focus{outline:1px solid var(--accent)}
+.row{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+.btn{
+  padding:8px 18px;border:none;border-radius:5px;
+  cursor:pointer;font-size:13px;font-family:inherit;
+}
+.btn-p{background:var(--accent);color:#000}
+.btn-p:hover{background:#a8c8ff}
+.btn-s{background:var(--hover);color:var(--text)}
+.btn-s:hover{background:#3a3a52}
+/* ══ SCROLLBAR ════════════════════════════════ */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--dim)}
+/* ══ MOBILE ═══════════════════════════════════ */
+@media(max-width:800px){
+  #sb{display:none}
+  #paper{width:100%;min-height:unset;padding:20px 16px}
+  #area{padding:10px 4px 20px}
+  button{padding:6px 8px;font-size:12px}
+}
+/* ══ PRINT ═══════════════════════════════════ */
+@media print{
+  #toolbar1,#toolbar2,#tabbar,#sb,#status{display:none!important}
+  #area{background:#fff;padding:0;overflow:visible}
+  #paper{box-shadow:none;width:100%;min-height:unset}
+  body{overflow:visible}
+}
+/* ══ SELECTION ═══════════════════════════════ */
+#editor ::selection{background:rgba(137,180,250,.35)}
+#editor ::-moz-selection{background:rgba(137,180,250,.35)}
+/* checkbox span */
+.cb{cursor:pointer;color:var(--accent);font-size:1.1em}
+.cb.done{color:var(--ok)}
+</style>
+</head>
+<body>
+
+<!-- ═══ TOOLBAR 1 (File & Edit) ═══════════════════ -->
+<div class="bar" id="toolbar1">
+  <button onclick="newDoc()" title="Ctrl+N">□ 새문서</button>
+  <button onclick="openFile()" title="Ctrl+O">📂 열기</button>
+  <button onclick="saveFile()" title="Ctrl+S">💾 저장</button>
+  <button onclick="saveAs()">다른이름...</button>
+  <div class="sep"></div>
+  <button onclick="doc.execCommand('undo')" title="Ctrl+Z">↩ 실행취소</button>
+  <button onclick="doc.execCommand('redo')" title="Ctrl+Y">↪ 다시실행</button>
+  <div class="sep"></div>
+  <button onclick="doc.execCommand('cut')">✂</button>
+  <button onclick="doc.execCommand('copy')">📋</button>
+  <button onclick="doc.execCommand('paste')">📌</button>
+  <div class="sep"></div>
+  <button onclick="showFind()" title="Ctrl+H">🔍 찾기/바꾸기</button>
+  <div class="sep"></div>
+  <button onclick="insertCB()">☑ 체크박스</button>
+  <button onclick="showTable()">⊞ 표</button>
+  <div class="sep"></div>
+  <button onclick="exportPDF()">📄 PDF</button>
+  <button onclick="exportDOCX()">📝 DOCX</button>
+  <button onclick="exportTXT()">💾 TXT</button>
+  <div class="sep" style="margin-left:auto"></div>
+  <select id="zoom-sel" onchange="setZoom(this.value)" style="width:72px">
+    <option>50%</option><option>75%</option><option selected>100%</option>
+    <option>125%</option><option>150%</option><option>175%</option>
+    <option>200%</option>
+  </select>
+  <button onclick="toggleSB()" title="사이드바">☰</button>
+  <select id="theme-sel" onchange="setTheme(this.value)" title="테마 변경" style="width:90px">
+    <option value="dark">🌙 다크</option>
+    <option value="light">☀️ 라이트</option>
+    <option value="default">🖥️ 기본</option>
+  </select>
+  <button onclick="showAbout()" title="도움말 F1">❓</button>
+</div>
+
+<!-- ═══ TOOLBAR 2 (Format) ═════════════════════════ -->
+<div class="bar" id="toolbar2">
+  <select id="ff" onchange="applyFF()" style="width:154px">
+    <option>맑은 고딕</option><option>굴림</option><option>돋움</option>
+    <option>바탕</option><option>궁서</option><option>나눔고딕</option>
+    <option>Arial</option><option>Times New Roman</option>
+    <option>Calibri</option><option>Georgia</option>
+    <option>Courier New</option><option>Verdana</option>
+  </select>
+  <select id="fs" onchange="applyFS()" style="width:58px">
+    <option>8</option><option>9</option><option>10</option>
+    <option>11</option><option selected>12</option><option>14</option>
+    <option>16</option><option>18</option><option>20</option>
+    <option>22</option><option>24</option><option>28</option>
+    <option>32</option><option>36</option><option>48</option>
+    <option>72</option>
+  </select>
+  <div class="sep"></div>
+  <button id="b-b" onclick="fmt('bold')" title="굵게 Ctrl+B"><b>B</b></button>
+  <button id="b-i" onclick="fmt('italic')" title="기울임 Ctrl+I"><i>I</i></button>
+  <button id="b-u" onclick="fmt('underline')" title="밑줄 Ctrl+U"><u>U</u></button>
+  <button id="b-s" onclick="fmt('strikeThrough')"><s>S</s></button>
+  <div class="sep"></div>
+  <button onclick="fmt('justifyLeft')" title="왼쪽">≡L</button>
+  <button onclick="fmt('justifyCenter')" title="가운데">≡C</button>
+  <button onclick="fmt('justifyRight')" title="오른쪽">≡R</button>
+  <button onclick="fmt('justifyFull')" title="양쪽">≡J</button>
+  <div class="sep"></div>
+  <button onclick="pickColor()" title="글자색" style="position:relative">
+    A<span id="cbar" style="position:absolute;bottom:2px;left:3px;right:3px;height:3px;background:#1E1E2E;border-radius:2px"></span>
+  </button>
+  <button onclick="pickHL()" title="형광펜">▌</button>
+  <input type="color" id="cpick" style="position:absolute;opacity:0;width:0;height:0" onchange="applyColor(this.value)">
+  <input type="color" id="hpick" style="position:absolute;opacity:0;width:0;height:0" onchange="applyHL(this.value)">
+  <div class="sep"></div>
+  <button onclick="fmt('insertUnorderedList')">• 목록</button>
+  <button onclick="fmt('insertOrderedList')">1. 번호</button>
+  <div class="sep"></div>
+  <button onclick="fmt('indent')">→ 들여</button>
+  <button onclick="fmt('outdent')">← 내어</button>
+  <button onclick="fmtBlock('h1')">H1</button>
+  <button onclick="fmtBlock('h2')">H2</button>
+  <button onclick="fmtBlock('h3')">H3</button>
+  <button onclick="fmtBlock('p')">본문</button>
+</div>
+
+<!-- ═══ TAB BAR ════════════════════════════════════ -->
+<div id="tabbar">
+  <div id="tabs"></div>
+  <div id="tab-add" onclick="newDoc()">+</div>
+</div>
+
+<!-- ═══ MAIN ════════════════════════════════════════ -->
+<div id="main">
+
+  <!-- SIDEBAR -->
+  <div id="sb">
+    <div class="sb-h">문서 정보</div>
+    <div id="sb-stats">글자: 0<br>단어: 0<br>줄: 1</div>
+    <hr class="sb-div">
+    <div class="sb-h">용지 크기</div>
+    <select id="psize" onchange="setPage(this.value)">
+      <option value="a4">A4 (210×297)</option>
+      <option value="a3">A3 (297×420)</option>
+      <option value="letter">Letter</option>
+      <option value="b5">B5</option>
+    </select>
+    <hr class="sb-div">
+    <div class="sb-h">빠른 삽입</div>
+    <button onclick="insertCB()">☑ 체크박스</button>
+    <button onclick="showTable()">⊞ 표 삽입</button>
+    <button onclick="insertHR()">─ 구분선</button>
+    <button onclick="insertDate()">📅 날짜/시간</button>
+    <button onclick="fmt('insertUnorderedList')">• 글머리표</button>
+    <button onclick="fmt('insertOrderedList')">1. 번호 목록</button>
+    <button onclick="fmtBlock('h1')">제목 1 (H1)</button>
+    <button onclick="fmtBlock('h2')">제목 2 (H2)</button>
+    <button onclick="fmtBlock('h3')">제목 3 (H3)</button>
+    <button onclick="fmtBlock('blockquote')">❝ 인용구</button>
+  </div>
+
+  <!-- EDITOR CANVAS -->
+  <div id="area">
+    <div id="wrap">
+      <div id="paper">
+        <div id="editor" contenteditable="true" spellcheck="false"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ STATUS BAR ══════════════════════════════════ -->
+<div id="status">
+  <span id="st-msg">준비</span>
+  <div id="status-right">
+    <span>UTF-8</span>
+    <span id="st-zoom">100%</span>
+    <span id="st-pos">줄 1, 열 1</span>
+  </div>
+</div>
+
+<!-- hidden file input -->
+<input type="file" id="fopen" style="display:none" accept=".hwps,.txt,.md,.html" onchange="loadFile(this)">
+
+<script>
+'use strict';
+// shorthand
+const doc = document;
+const $ = id => doc.getElementById(id);
+const editor = $('editor');
+
+// ── STATE ────────────────────────────────────────────
+const S = {
+  docs: [{id:1, title:'새 문서 1', html:'', file:null, mod:false}],
+  idx: 0,
+  zoom: 100,
+  server: false,
+  composing: false,
+  stTimer: null,
+  saveTimer: null,
+};
+let nid = 2;
+
+// ── UTILS ─────────────────────────────────────────────
+const cur = () => S.docs[S.idx];
+
+function setStatus(msg, ms=4000) {
+  $('st-msg').textContent = msg;
+  clearTimeout(S.stTimer);
+  S.stTimer = setTimeout(() => $('st-msg').textContent = '준비', ms);
+}
+
+async function ping() {
+  try {
+    const r = await fetch('/api/ping', {signal: AbortSignal.timeout(800)});
+    S.server = r.ok;
+  } catch { S.server = false; }
+}
+
+// ── DOCS ─────────────────────────────────────────────
+function flush() {
+  if (S.docs.length) cur().html = editor.innerHTML;
+}
+
+function newDoc() {
+  flush();
+  S.docs.push({id:nid++, title:`새 문서 ${nid-1}`, html:'', file:null, mod:false});
+  S.idx = S.docs.length - 1;
+  load(); tabs();
+  setStatus('새 문서가 만들어졌습니다.');
+}
+
+function switchTab(i) {
+  flush(); S.idx = i; load(); tabs(); updateStats();
+}
+
+function closeTab(i, e) {
+  e.stopPropagation();
+  if (S.docs.length === 1) {
+    S.docs[0] = {id:nid++, title:'새 문서 1', html:'', file:null, mod:false};
+    load(); tabs(); return;
+  }
+  S.docs.splice(i, 1);
+  S.idx = Math.max(0, Math.min(S.idx, S.docs.length - 1));
+  tabs(); load();
+}
+
+function load() {
+  editor.innerHTML = cur().html || '';
+  editor.focus();
+  doc.title = `HWP Studio – ${cur().title}`;
+  updateStats();
+}
+
+function tabs() {
+  const c = $('tabs');
+  c.innerHTML = '';
+  S.docs.forEach((d, i) => {
+    const t = doc.createElement('div');
+    t.className = 'tab' + (i === S.idx ? ' on' : '');
+    t.innerHTML = `<span>${d.title}${d.mod?' *':''}</span><span class="x">×</span>`;
+    t.onclick = () => switchTab(i);
+    t.querySelector('.x').onclick = e => closeTab(i, e);
+    c.appendChild(t);
+  });
+}
+
+function markMod() {
+  cur().mod = true; tabs();
+}
+
+// ── FILE OPS ──────────────────────────────────────────
+function openFile() { $('fopen').click(); }
+
+async function loadFile(inp) {
+  const f = inp.files[0]; if (!f) return;
+  const raw = await f.text();
+  flush();
+  let html = '', title = f.name.replace(/\.[^.]+$/, '');
+  if (f.name.endsWith('.hwps')) {
+    try {
+      const d = JSON.parse(raw);
+      html = d.html || d.content?.replace(/\n/g, '<br>') || '';
+      title = d.title || title;
+    } catch { html = esc(raw).replace(/\n/g,'<br>'); }
+  } else {
+    html = esc(raw).replace(/\n/g,'<br>');
+  }
+  S.docs.push({id:nid++, title, html, file:f.name, mod:false});
+  S.idx = S.docs.length - 1;
+  tabs(); load();
+  setStatus(`열기 완료: ${f.name}`);
+  inp.value = '';
+}
+
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function saveFile() {
+  flush();
+  const d = cur();
+  if (S.server && d.file) {
+    try {
+      const r = await fetch('/api/save', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({path:d.file, title:d.title, html:d.html,
+                              content:editor.innerText,
+                              saved_at:new Date().toISOString(), version:'2.0'})
+      });
+      if (r.ok) { d.mod=false; tabs(); setStatus('저장 완료'); return; }
+    } catch {}
+  }
+  saveAs();
+}
+
+function saveAs() {
+  flush();
+  const d = cur();
+  const obj = {title:d.title, html:d.html, content:editor.innerText,
+                saved_at:new Date().toISOString(), version:'2.0'};
+  dl(JSON.stringify(obj, null, 2), d.title+'.hwps', 'application/json');
+  d.mod=false; tabs(); setStatus('파일 다운로드됨');
+}
+
+function exportTXT() {
+  flush();
+  dl(editor.innerText, cur().title+'.txt', 'text/plain;charset=utf-8');
+  setStatus('TXT 다운로드됨');
+}
+
+async function exportPDF() {
+  if (S.server) {
+    try {
+      flush();
+      const r = await fetch('/api/export/pdf', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({title:cur().title, content:editor.innerText})
+      });
+      if (r.ok) { dlBlob(await r.blob(), cur().title+'.pdf'); setStatus('PDF 저장됨'); return; }
+    } catch {}
+  }
+  setStatus('PDF 인쇄 다이얼로그 열기...');
+  window.print();
+}
+
+async function exportDOCX() {
+  if (S.server) {
+    try {
+      flush();
+      const r = await fetch('/api/export/docx', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({title:cur().title, content:editor.innerText})
+      });
+      if (r.ok) { dlBlob(await r.blob(), cur().title+'.docx'); setStatus('DOCX 저장됨'); return; }
+    } catch {}
+  }
+  setStatus('DOCX: 서버가 필요합니다 (python server.py 실행)');
+}
+
+function dl(text, name, mime) {
+  const b = new Blob([text], {type:mime});
+  dlBlob(b, name);
+}
+function dlBlob(blob, name) {
+  const a = doc.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+// ── FORMATTING ────────────────────────────────────────
+function fmt(cmd, val=null) {
+  editor.focus();
+  doc.execCommand(cmd, false, val);
+  updFmtBtns();
+}
+function fmtBlock(tag) { fmt('formatBlock', tag); }
+
+function applyFF() {
+  fmt('fontName', $('ff').value);
+}
+
+function applyFS() {
+  const sz = $('fs').value;
+  // Insert a styled span for precise pt sizing
+  doc.execCommand('fontSize', false, '7');
+  editor.querySelectorAll('font[size="7"]').forEach(el => {
+    el.removeAttribute('size');
+    el.style.fontSize = sz + 'pt';
+  });
+}
+
+function pickColor()  { $('cpick').click(); }
+function applyColor(c) { $('cbar').style.background=c; fmt('foreColor',c); }
+function pickHL()     { $('hpick').click(); }
+function applyHL(c)   { fmt('hiliteColor',c); }
+
+function updFmtBtns() {
+  ['bold','italic','underline','strikeThrough'].forEach((cmd,i) => {
+    const id = ['b-b','b-i','b-u','b-s'][i];
+    $(id).classList.toggle('on', doc.queryCommandState(cmd));
+  });
+}
+
+// ── INSERT ────────────────────────────────────────────
+function insertCB() {
+  editor.focus();
+  const sp = doc.createElement('span');
+  sp.className = 'cb'; sp.textContent = '☐';
+  sp.onclick = function() {
+    this.textContent = this.textContent==='☐' ? '☑' : '☐';
+    this.classList.toggle('done', this.textContent==='☑');
+  };
+  insertNode(sp); insertNode(doc.createTextNode(' '));
+  setStatus('체크박스 삽입됨');
+}
+
+function insertHR() {
+  fmt('insertHTML', '<hr><br>');
+}
+
+function insertDate() {
+  const n = new Date();
+  const s = `${n.getFullYear()}년 ${n.getMonth()+1}월 ${n.getDate()}일 `+
+            `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
+  fmt('insertText', s);
+}
+
+function insertNode(node) {
+  const sel = window.getSelection();
+  if (!sel.rangeCount) return;
+  const r = sel.getRangeAt(0);
+  r.collapse(true); r.insertNode(node);
+  r.setStartAfter(node); r.collapse(true);
+  sel.removeAllRanges(); sel.addRange(r);
+}
+
+// ── TABLE DIALOG ──────────────────────────────────────
+function showTable() {
+  modal(`
+    <h3>표 삽입</h3>
+    <label>행 수</label><input type="number" id="tr" value="3" min="1" max="30">
+    <label>열 수</label><input type="number" id="tc" value="3" min="1" max="15">
+    <div class="row">
+      <button class="btn btn-s" onclick="closeModal()">취소</button>
+      <button class="btn btn-p" onclick="doTable()">삽입</button>
+    </div>`
+  );
+  setTimeout(()=>$('tr')?.focus(), 50);
+}
+
+function doTable() {
+  const r = +($('tr')?.value||3), c = +($('tc')?.value||3);
+  closeModal();
+  let h = '<table>';
+  for(let i=0;i<r;i++){
+    h+='<tr>';
+    for(let j=0;j<c;j++) h+=`<td>&nbsp;</td>`;
+    h+='</tr>';
+  }
+  h+='</table><br>';
+  fmt('insertHTML', h);
+  setStatus(`${r}×${c} 표 삽입됨`);
+}
+
+// ── FIND & REPLACE ───────────────────────────────────
+function showFind() {
+  modal(`
+    <h3>찾기 / 바꾸기</h3>
+    <label>찾기</label><input type="text" id="ftxt" placeholder="검색어...">
+    <label>바꾸기</label><input type="text" id="rtxt" placeholder="바꿀 텍스트...">
+    <div id="fr-res" style="font-size:11px;color:var(--accent);min-height:16px;margin-bottom:4px"></div>
+    <div class="row">
+      <button class="btn btn-s" onclick="closeModal()">닫기</button>
+      <button class="btn btn-s" onclick="doFind()">찾기</button>
+      <button class="btn btn-p" onclick="doReplace()">모두 바꾸기</button>
+    </div>`
+  );
+  setTimeout(()=>$('ftxt')?.focus(), 50);
+}
+
+function doFind() {
+  const t = $('ftxt')?.value; if(!t) return;
+  const found = window.find(t, false, false, true);
+  $('fr-res').textContent = found ? '찾았습니다 ✓' : '찾을 수 없습니다';
+}
+
+function doReplace() {
+  const t = $('ftxt')?.value; if(!t) return;
+  const r = $('rtxt')?.value||'';
+  const re = new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi');
+  const cnt = (editor.innerHTML.match(re)||[]).length;
+  editor.innerHTML = editor.innerHTML.replace(re, r);
+  $('fr-res').textContent = `${cnt}개 바꿈`;
+  markMod();
+}
+
+// ── MODAL ─────────────────────────────────────────────
+function modal(inner) {
+  closeModal();
+  const o = doc.createElement('div');
+  o.className='ov'; o.id='modal-ov';
+  o.innerHTML=`<div class="dlg">${inner}</div>`;
+  o.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+  doc.body.appendChild(o);
+}
+function closeModal() { $('modal-ov')?.remove(); }
+
+// ── ZOOM ──────────────────────────────────────────────
+function setZoom(v) {
+  const z = parseInt(v)||100;
+  S.zoom = z;
+  $('wrap').style.transform = `scale(${z/100})`;
+  $('wrap').style.marginBottom = `${(z-100)*11}px`;
+  $('st-zoom').textContent = z+'%';
+}
+
+// ── PAGE SIZE ─────────────────────────────────────────
+const PAGES = {a4:[794,1123],a3:[1123,1588],letter:[816,1056],b5:[665,945]};
+function setPage(k) {
+  const [w,h] = PAGES[k]||PAGES.a4;
+  $('paper').style.width=w+'px';
+  $('paper').style.minHeight=h+'px';
+}
+
+// ── SIDEBAR ───────────────────────────────────────────
+function toggleSB() { $('sb').classList.toggle('hide'); }
+
+// ── STATS ─────────────────────────────────────────────
+let _st = null;
+function updateStats() {
+  clearTimeout(_st);
+  _st = setTimeout(() => {
+    const t = editor.innerText;
+    const c = t.length;
+    const w = t.trim() ? t.trim().split(/\s+/).length : 0;
+    const l = t.split('\n').length;
+    $('sb-stats').innerHTML = `글자: ${c}<br>단어: ${w}<br>줄: ${l}`;
+  }, 120);
+}
+
+function updatePos() {
+  try {
+    const sel = window.getSelection();
+    if (!sel.rangeCount) return;
+    const r = sel.getRangeAt(0).cloneRange();
+    r.collapse(true);
+    const tmp = doc.createRange();
+    tmp.selectNodeContents(editor);
+    tmp.setEnd(r.startContainer, r.startOffset);
+    const txt = tmp.toString();
+    const lines = txt.split('\n');
+    $('st-pos').textContent = `줄 ${lines.length}, 열 ${lines[lines.length-1].length+1}`;
+  } catch {}
+}
+
+// ── AUTO-SAVE (localStorage) ──────────────────────────
+function autosave() {
+  flush();
+  try { localStorage.setItem('hwps2', JSON.stringify({docs:S.docs, idx:S.idx})); } catch {}
+}
+
+function restoreSession() {
+  try {
+    const d = JSON.parse(localStorage.getItem('hwps2'));
+    if (d?.docs?.length) { S.docs=d.docs; S.idx=Math.min(d.idx||0,d.docs.length-1); return true; }
+  } catch {}
+  return false;
+}
+
+// ── ABOUT ─────────────────────────────────────────────
+function showAbout() {
+  modal(`
+    <h3>HWP Studio v2.0</h3>
+    <p style="color:var(--dim);font-size:12px;line-height:1.8;margin-bottom:12px">
+      한국어 문서 편집기 – Web 버전<br>
+      Android・iOS・Windows・macOS 지원<br><br>
+      <b style="color:var(--text)">단축키</b><br>
+      Ctrl+N 새 문서 &nbsp;│&nbsp; Ctrl+O 열기 &nbsp;│&nbsp; Ctrl+S 저장<br>
+      Ctrl+B 굵게 &nbsp;│&nbsp; Ctrl+I 기울임 &nbsp;│&nbsp; Ctrl+U 밑줄<br>
+      Ctrl+H 찾기/바꾸기 &nbsp;│&nbsp; Ctrl+± 확대/축소<br><br>
+      <b style="color:var(--text)">태블릿에서 사용</b><br>
+      같은 WiFi에서 서버 IP로 접속하면<br>
+      Android・iPad 브라우저에서 사용 가능
+    </p>
+    <div class="row"><button class="btn btn-p" onclick="closeModal()">확인</button></div>`
+  );
+}
+
+// ── THEME ─────────────────────────────────────────────
+const THEME_META = {
+  dark:    '#1E1E2E',
+  light:   '#F2F4F8',
+  default: '#F5F2EC',
+};
+function setTheme(t) {
+  doc.documentElement.setAttribute('data-theme', t);
+  doc.querySelector('meta[name="theme-color"]').content = THEME_META[t] || THEME_META.dark;
+  try { localStorage.setItem('hwps-theme', t); } catch {}
+  const sel = $('theme-sel');
+  if (sel && sel.value !== t) sel.value = t;
+}
+
+// ── EVENTS ────────────────────────────────────────────
+editor.addEventListener('input', () => {
+  if (!S.composing) { markMod(); updateStats(); }
+});
+editor.addEventListener('compositionstart', () => S.composing = true);
+editor.addEventListener('compositionend',   () => { S.composing=false; markMod(); updateStats(); });
+editor.addEventListener('keyup',            updatePos);
+editor.addEventListener('mouseup',          () => { updatePos(); updFmtBtns(); });
+editor.addEventListener('selectionchange',  updFmtBtns);
+
+// Clean paste (keep text, strip external styles)
+editor.addEventListener('paste', e => {
+  e.preventDefault();
+  const html = e.clipboardData.getData('text/html');
+  const txt  = e.clipboardData.getData('text/plain');
+  if (html) {
+    // Allow paste of html from within app, strip scripts
+    const clean = html.replace(/<script[\s\S]*?<\/script>/gi,'')
+                      .replace(/on\w+="[^"]*"/gi,'');
+    doc.execCommand('insertHTML', false, clean);
+  } else {
+    doc.execCommand('insertText', false, txt);
+  }
+});
+
+doc.addEventListener('keydown', e => {
+  const m = e.ctrlKey || e.metaKey;
+  if (m) {
+    switch(e.key.toLowerCase()) {
+      case 'n': e.preventDefault(); newDoc(); break;
+      case 'o': e.preventDefault(); openFile(); break;
+      case 's': e.preventDefault(); e.shiftKey ? saveAs() : saveFile(); break;
+      case 'h': e.preventDefault(); showFind(); break;
+      case '=': case '+':
+        e.preventDefault();
+        setZoom(Math.min(200, S.zoom+25));
+        $('zoom-sel').value = S.zoom+'%';
+        break;
+      case '-':
+        e.preventDefault();
+        setZoom(Math.max(50, S.zoom-25));
+        $('zoom-sel').value = S.zoom+'%';
+        break;
+    }
+  }
+  if (e.key==='F1') { e.preventDefault(); showAbout(); }
+  if (e.key==='Escape') closeModal();
+});
+
+// Auto-save every 25s
+setInterval(autosave, 25000);
+
+// ── INIT ──────────────────────────────────────────────
+(async function init() {
+  await ping();
+  if (!restoreSession()) {
+    S.docs = [{id:1, title:'새 문서 1', html:'', file:null, mod:false}];
+    S.idx = 0;
+  }
+  // Restore saved theme
+  const savedTheme = localStorage.getItem('hwps-theme') || 'dark';
+  setTheme(savedTheme);
+
+  tabs(); load();
+  const mode = S.server
+    ? '서버 연결됨 – 파일 시스템 및 PDF/DOCX 내보내기 사용 가능'
+    : '브라우저 모드 – 저장 시 파일이 다운로드됩니다';
+  setStatus(mode, 6000);
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  }
+})();
+</script>
+</body>
+</html>
