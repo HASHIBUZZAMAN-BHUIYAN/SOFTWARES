@@ -1,0 +1,70 @@
+name: privmesh
+description: Private encrypted LAN mesh messenger with calling
+publish_to: none
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # ── Rust bridge ──────────────────────────────────
+  flutter_rust_bridge: ^2.0.0        # Dart ↔ Rust FFI bridge
+
+  # ── NFC pairing ──────────────────────────────────
+  nfc_manager: ^3.3.0                # Manual NFC tap pairing
+
+  # ── Calling (WebRTC) ─────────────────────────────
+  flutter_webrtc: ^0.10.0            # DTLS-SRTP encrypted calls
+
+  # ── Networking ───────────────────────────────────
+  multicast_dns: ^0.3.2              # mDNS peer discovery
+
+  # ── Secure storage ───────────────────────────────
+  flutter_secure_storage: ^9.0.0     # Hardware-backed key storage
+  sqflite_sqlcipher: ^2.2.1          # AES-256 encrypted SQLite
+
+  # ── Backup ───────────────────────────────────────
+  google_sign_in: ^6.2.1
+  googleapis: ^12.0.0                # Drive API
+
+  # ── UI & animations ──────────────────────────────
+  flutter_animate: ^4.5.0            # Smooth micro-animations
+  google_fonts: ^6.2.1               # Typography
+  shimmer: ^3.0.0                    # Loading skeletons
+  lottie: ^3.1.0                     # After Effects animations
+  gap: ^3.0.1                        # Clean spacing
+
+  # ── State management ─────────────────────────────
+  riverpod: ^2.5.1
+  flutter_riverpod: ^2.5.1
+
+  # ── Utilities ────────────────────────────────────
+  freezed_annotation: ^2.4.1
+  json_annotation: ^4.9.0
+  intl: ^0.19.0
+  path: ^1.9.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  build_runner: ^2.4.9
+  freezed: ^2.5.2
+  json_serializable: ^6.8.0
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/animations/
+    - assets/icons/
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
