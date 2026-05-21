@@ -1,0 +1,64 @@
+[package]
+name    = "privmesh_core"
+version = "0.1.0"
+edition = "2021"
+
+# Expose a C ABI so Flutter can call via dart:ffi / flutter_rust_bridge
+[lib]
+crate-type = ["cdylib", "staticlib"]
+
+[dependencies]
+# ── flutter_rust_bridge glue ────────────────────────────────────────────────
+flutter_rust_bridge = "=2.0.0"
+
+# ── Cryptography ─────────────────────────────────────────────────────────────
+# All from the RustCrypto project — audited, no unsafe, constant-time
+aes-gcm      = { version = "0.10", features = ["aes"] }   # AES-256-GCM (O(n) encrypt)
+ed25519-dalek = { version = "2.1", features = ["rand_core"] } # Ed25519 identity
+x25519-dalek  = { version = "2.0" }                        # ECDH key exchange
+argon2       = "0.5"                                       # Password hashing (Argon2id)
+pbkdf2       = "0.12"                                      # PBKDF2 for PIN key derivation
+sha2         = "0.10"                                      # SHA-256/512
+hmac         = "0.12"                                      # HMAC for message auth
+rand         = "0.8"                                       # Secure random (uses OS CSPRNG)
+zeroize      = "1.7"                                       # Wipe secrets from memory on drop
+
+# ── Network / transport ──────────────────────────────────────────────────────
+tokio        = { version = "1.37", features = ["full"] }   # Async runtime
+mdns-sd      = "0.10"                                      # mDNS service discovery
+socket2      = "0.5"                                       # Low-level UDP socket control
+bytes        = "1.6"                                       # Zero-copy byte buffers
+
+# ── Audio ────────────────────────────────────────────────────────────────────
+# opus-sys links to libopus C library (hardware-accelerated on arm64)
+opus         = "0.3"                                       # Opus codec bindings
+webrtc-srtp  = "0.9"                                       # SRTP encryption for calls
+
+# ── Serialisation ────────────────────────────────────────────────────────────
+serde        = { version = "1.0", features = ["derive"] }
+serde_json   = "1.0"
+
+# ── Error handling ───────────────────────────────────────────────────────────
+thiserror    = "1.0"
+anyhow       = "1.0"
+
+# ── Utilities ────────────────────────────────────────────────────────────────
+uuid         = { version = "1.8", features = ["v4"] }
+chrono       = { version = "0.4", features = ["serde"] }
+dashmap      = "5.5"                                       # O(1) concurrent HashMap
+arrayvec     = "0.7"                                       # Fixed-size stack arrays (no heap alloc)
+
+[profile.release]
+opt-level     = 3          # Maximum optimisation
+lto           = true       # Link-time optimisation
+codegen-units = 1          # Better inlining
+strip         = true       # Remove debug symbols from final binary
+panic         = "abort"    # Smaller binary, no unwinding overhead
+
+[profile.dev]
+opt-level = 1              # Some optimisation even in debug for crypto perf
+
+# ── Build features ───────────────────────────────────────────────────────────
+[features]
+default  = ["hardware-aes"]
+hardware-aes = ["aes-gcm/aes"]   # Use AES-NI hardware instructions if available
